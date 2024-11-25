@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "fast-python-mongo-demo"
+version = "0.1.0"
+description = ""
+authors = ["Dokeun Oh <ohdoking@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.5"
+pymongo = "^4.9"
+uvicorn = "^0.32.1"
+pydantic = "^2.10.1"
+pydantic-core = "^2.27.1"
+motor = "^3.6.0"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

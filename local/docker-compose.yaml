@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  fastapi:
+    image: fast-python-mongo-demo-app:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_URL=mongodb://mongo:27017
+      - DB_USER=root
+      - DB_PASSWORD=pw
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=pw
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
