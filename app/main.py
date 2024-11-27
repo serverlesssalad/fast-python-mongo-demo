@@ -11,7 +11,7 @@ app = FastAPI(
 # MongoDB setup
 # Access MongoDB credentials from environment variables
 mongodb_url = os.getenv("DB_URL", "mongodb://localhost:27017")
-mongodb_user = os.getenv("DB_USER", "root")
+mongodb_user = os.getenv("DB_USERNAME", "root")
 mongodb_password = os.getenv("DB_PASSWORD", "pw")
 
 print(f"mongodb_url : {mongodb_url}")
