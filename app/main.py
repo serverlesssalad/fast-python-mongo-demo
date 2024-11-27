@@ -14,11 +14,25 @@ mongodb_url = os.getenv("DB_URL", "mongodb://localhost:27017")
 mongodb_user = os.getenv("DB_USER", "root")
 mongodb_password = os.getenv("DB_PASSWORD", "pw")
 
-client = motor.motor_asyncio.AsyncIOMotorClient(
-    mongodb_url, 
-    username=mongodb_user, 
-    password=mongodb_password
-)
+# SSL certificate path (adjust this path based on where you place the certificate in your Docker container)
+ssl_cert_path = "/app/certs/global-bundle.pem"
+
+# MongoDB client initialization with conditional SSL configuration
+if os.path.exists(ssl_cert_path):
+    client = motor.motor_asyncio.AsyncIOMotorClient(
+        mongodb_url, 
+        username=mongodb_user, 
+        password=mongodb_password,
+        ssl=True,  # Enable SSL
+        ssl_ca_certs=ssl_cert_path  # Provide the path to the certificate
+    )
+else:
+    client = motor.motor_asyncio.AsyncIOMotorClient(
+        mongodb_url, 
+        username=mongodb_user, 
+        password=mongodb_password
+    )
+
 db = client.college
 word_collection = db.get_collection("word")
 

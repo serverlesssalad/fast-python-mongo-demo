@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy Files
 COPY . /app
 
+# Copy the SSL certificate into the container (assumes you have global-bundle.pem in your project directory)
+COPY global-bundle.pem /app/certs/global-bundle.pem
+
 # Step 4: Install Poetry
 RUN pip install poetry
 
