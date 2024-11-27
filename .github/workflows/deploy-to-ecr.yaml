@@ -1,46 +1,81 @@
-name: Deploy to AWS ECR
+# name: Deploy to AWS ECR
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# env:
+#   AWS_REGION: "eu-central-1"
+  
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     permissions:
+#       contents: read
+#       id-token: write
+
+#     steps:
+#       # Checkout the code
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       # Set up AWS credentials
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
+          
+#       # Login to Amazon ECR
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       # Build and tag the Docker image
+#       - name: Build and Tag Docker Image
+#         run: |
+#           docker build -t fast-python-mongo-demo-app .
+#           docker tag fast-python-mongo-demo-app:latest ${{ steps.login-ecr.outputs.registry }}/fast-python-mongo-demo-app:latest
+
+#       # Push the Docker image to Amazon ECR
+#       - name: Push Docker Image to Amazon ECR
+#         run: |
+#           docker push ${{ steps.login-ecr.outputs.registry }}/fast-python-mongo-demo-app:latest
+name: Deploy to GitHub Container Registry
 
 on:
   push:
     branches:
       - main
 
-env:
-  AWS_REGION: "eu-central-1"
-  
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      id-token: write
+      packages: write  # Required to push to GitHub Container Registry
 
     steps:
       # Checkout the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Set up AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-          
-      # Login to Amazon ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      # Authenticate to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       # Build and tag the Docker image
       - name: Build and Tag Docker Image
         run: |
           docker build -t fast-python-mongo-demo-app .
-          docker tag fast-python-mongo-demo-app:latest ${{ steps.login-ecr.outputs.registry }}/fast-python-mongo-demo-app:latest
+          docker tag fast-python-mongo-demo-app:latest ghcr.io/${{ github.repository_owner }}/fast-python-mongo-demo-app:latest
 
-      # Push the Docker image to Amazon ECR
-      - name: Push Docker Image to Amazon ECR
+      # Push the Docker image to GHCR
+      - name: Push Docker Image to GitHub Container Registry
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/fast-python-mongo-demo-app:latest
+          docker push ghcr.io/${{ github.repository_owner }}/fast-python-mongo-demo-app:latest
