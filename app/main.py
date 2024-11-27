@@ -47,6 +47,19 @@ async def get_helloworld():
     
     return WordModel(word=f"Hello {word}")
 
+@app.get("/health", response_description="Health check")
+async def health_check():
+    """
+    Returns the health status of the application.
+    """
+    try:
+        # Check MongoDB connection
+        await client.server_info()  # Raises an exception if the MongoDB connection is down
+        return {"status": "healthy"}
+    except Exception as e:
+        return {"status": "unhealthy", "details": str(e)}
+
+
 @app.on_event("startup")
 async def startup_db():
     """
