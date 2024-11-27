@@ -17,6 +17,7 @@ mongodb_password = os.getenv("DB_PASSWORD", "pw")
 print(f"mongodb_url : {mongodb_url}")
 print(f"mongodb_user : {mongodb_user}")
 print(f"mongodb_password : {mongodb_password}")
+
 # SSL certificate path (adjust this path based on where you place the certificate in your Docker container)
 ssl_cert_path = "/app/certs/global-bundle.pem"
 
