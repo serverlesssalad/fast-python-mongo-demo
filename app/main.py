@@ -24,7 +24,7 @@ if os.path.exists(ssl_cert_path):
         username=mongodb_user, 
         password=mongodb_password,
         ssl=True,  # Enable SSL
-        ssl_ca_certs=ssl_cert_path  # Provide the path to the certificate
+        tlsCAFile=ssl_cert_path  # Provide the path to the certificate
     )
 else:
     client = motor.motor_asyncio.AsyncIOMotorClient(
