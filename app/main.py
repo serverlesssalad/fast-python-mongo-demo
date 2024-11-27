@@ -82,10 +82,23 @@ async def health_check():
 async def startup_db():
     """
     Initialize the word collection at application startup if it is empty.
+    Ensure the database connection is established before performing operations.
     """
-    # Check if the collection is empty
-    existing_word = await word_collection.find_one({"word": {"$exists": True}})
-    if not existing_word:
-        # Initialize the word field if no document exists
-        await word_collection.insert_one({"word": "Serverless Salad Infrapal World"})
-        print("Initialized word collection with default word value.")
+    try:
+        # Test the database connection
+        await client.server_info()  # This will raise an exception if the connection fails
+        print("MongoDB connection established successfully.")
+
+        # Check if the collection is empty
+        existing_word = await word_collection.find_one({"word": {"$exists": True}})
+        if not existing_word:
+            # Seed the database with an initial value
+            await word_collection.insert_one({"word": "Serverless Salad Infrapal World"})
+            print("Initialized word collection with default word value.")
+        else:
+            print("Word collection already initialized.")
+
+    except Exception as e:
+        print(f"Failed to connect to MongoDB: {e}")
+        # Optionally, terminate the application if the database connection is critical
+        raise RuntimeError("Application startup failed due to database connection issues.") from e
