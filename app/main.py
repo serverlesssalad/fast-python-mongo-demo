@@ -1,5 +1,6 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from typing import List
 from pydantic import BaseModel
 import motor.motor_asyncio
 
@@ -45,6 +46,51 @@ class WordModel(BaseModel):
     """Model for word data."""
     word: str
 
+class WordUpdateModel(BaseModel):
+    word: str = None
+
+
+@app.get("/api/words", response_model=List[WordModel], summary="Get all words")
+async def get_all_words():
+    words = await word_collection.find().to_list(100)
+    return [WordModel(**word) for word in words]
+
+
+@app.get("/api/words/{word_id}", response_model=WordModel, summary="Get a word by ID")
+async def get_word(word_id: str):
+    word = await word_collection.find_one({"_id": word_id})
+    if not word:
+        raise HTTPException(status_code=404, detail="Word not found")
+    return WordModel(**word)
+
+
+@app.post("/api/words", response_model=WordModel, summary="Create a new word")
+async def create_word(word: WordModel):
+    result = await word_collection.insert_one(word.dict())
+    new_word = await word_collection.find_one({"_id": result.inserted_id})
+    return WordModel(**new_word)
+
+
+@app.put("/api/words/{word_id}", response_model=WordModel, summary="Update an existing word")
+async def update_word(word_id: str, word: WordUpdateModel):
+    update_data = {k: v for k, v in word.dict().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    result = await word_collection.update_one({"_id": word_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Word not found")
+
+    updated_word = await word_collection.find_one({"_id": word_id})
+    return WordModel(**updated_word)
+
+
+@app.delete("/api/words/{word_id}", summary="Delete a word")
+async def delete_word(word_id: str):
+    result = await word_collection.delete_one({"_id": word_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Word not found")
+    return {"message": "Word deleted successfully"}
 
 @app.get(
     "/hello",
