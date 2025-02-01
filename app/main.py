@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from typing import List
 from pydantic import BaseModel
 import motor.motor_asyncio
+from urllib.parse import quote_plus
 
 app = FastAPI(
     title="Fastapi and mongodb demo API",
@@ -11,7 +12,7 @@ app = FastAPI(
 
 # MongoDB setup
 # Access MongoDB credentials from environment variables
-mongodb_url = os.getenv("DB_URL", "mongodb://localhost:27017")
+raw_mongodb_url = os.getenv("DB_URL", "mongodb://localhost:27017")
 mongodb_user = os.getenv("DB_USERNAME", "root")
 mongodb_password = os.getenv("DB_PASSWORD", "pw")
 
@@ -19,24 +20,30 @@ print(f"mongodb_url : {mongodb_url}")
 print(f"mongodb_user : {mongodb_user}")
 print(f"mongodb_password : {mongodb_password}")
 
+# Encode username & password
+encoded_user = quote_plus(mongodb_user)
+encoded_password = quote_plus(mongodb_password)
+
+# Construct the MongoDB URI
+if "@" in raw_mongodb_url:
+    # If DB_URL already contains credentials, use it as is
+    mongodb_url = raw_mongodb_url
+else:
+    mongodb_url = f"mongodb://{encoded_user}:{encoded_password}@{raw_mongodb_url.split('mongodb://')[1]}"
+
+print(f"Using MongoDB URL: {mongodb_url}")
+
+
 # SSL certificate path (adjust this path based on where you place the certificate in your Docker container)
 ssl_cert_path = "/app/certs/global-bundle.pem"
 
-# MongoDB client initialization with conditional SSL configuration
-if os.path.exists(ssl_cert_path):
-    client = motor.motor_asyncio.AsyncIOMotorClient(
-        mongodb_url, 
-        username=mongodb_user, 
-        password=mongodb_password,
-        ssl=True,  # Enable SSL
-        tlsCAFile=ssl_cert_path  # Provide the path to the certificate
-    )
-else:
-    client = motor.motor_asyncio.AsyncIOMotorClient(
-        mongodb_url, 
-        username=mongodb_user, 
-        password=mongodb_password
-    )
+# Initialize MongoDB client with conditional SSL
+client_options = {
+    "tlsCAFile": ssl_cert_path,
+    "tls": True
+} if os.path.exists(ssl_cert_path) else {}
+
+client = motor.motor_asyncio.AsyncIOMotorClient(mongodb_url, **client_options)
 
 db = client.college
 word_collection = db.get_collection("word")
