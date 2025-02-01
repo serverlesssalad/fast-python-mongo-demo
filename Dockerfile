@@ -11,7 +11,7 @@ COPY . /app
 COPY global-bundle.pem /app/certs/global-bundle.pem
 
 # Step 4: Install Poetry
-RUN pip install poetry
+RUN pip install poetry==1.8.5
 
 # Step 5: Disable Virtual Environments
 RUN poetry config virtualenvs.create false
