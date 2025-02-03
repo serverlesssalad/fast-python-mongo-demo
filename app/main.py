@@ -3,7 +3,6 @@ from fastapi import FastAPI, HTTPException
 from typing import List
 from pydantic import BaseModel
 import motor.motor_asyncio
-from urllib.parse import quote_plus
 
 app = FastAPI(
     title="Fastapi and mongodb demo API",
@@ -20,16 +19,12 @@ print(f"mongodb_url : {raw_mongodb_url}")
 print(f"mongodb_user : {mongodb_user}")
 print(f"mongodb_password : {mongodb_password}")
 
-# Encode username & password
-encoded_user = quote_plus(mongodb_user)
-encoded_password = quote_plus(mongodb_password)
-
 # Construct the MongoDB URI
 if "@" in raw_mongodb_url:
     # If DB_URL already contains credentials, use it as is
     mongodb_url = raw_mongodb_url
 else:
-    mongodb_url = f"mongodb://{encoded_user}:{encoded_password}@{raw_mongodb_url.split('mongodb://')[1]}"
+    mongodb_url = f"mongodb://{mongodb_user}:{mongodb_password}@{raw_mongodb_url.split('mongodb://')[1]}"
 
 print(f"Using MongoDB URL: {mongodb_url}")
 
