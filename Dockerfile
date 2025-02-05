@@ -1,26 +1,23 @@
-# Use an official Python base image with Python 3.12
+# Use the official Python image from the Docker Hub
 FROM python:3.12-slim
 
-# Working Directory
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy Files
-COPY . /app
+# Copy the poetry files and install dependencies
+COPY pyproject.toml poetry.lock ./
+RUN pip install --no-cache-dir poetry && \
+    poetry install --no-root --no-dev
 
-# Copy the SSL certificate into the container (assumes you have global-bundle.pem in your project directory)
-COPY global-bundle.pem /app/certs/global-bundle.pem
+# Copy the rest of the application files
+COPY app/ ./app/
+COPY .env ./
 
-# Step 4: Install Poetry
-RUN pip install poetry==1.8.5
-
-# Step 5: Disable Virtual Environments
-RUN poetry config virtualenvs.create false
-
-# Step 6: Install Dependencies
-RUN poetry install --no-dev
-
-# Step 7: Expose Port
-EXPOSE 8000
-
-# Step 8: CMD to Run App
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload"]
+# Set the entrypoint to your main application
+ENTRYPOINT ["poetry", "run", "python", "./app/main.py"]
+   docker build -t flexmongo .
+   docker run --env-file .env flexmongo
