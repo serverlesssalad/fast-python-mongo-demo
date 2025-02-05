@@ -1,0 +1,38 @@
+version: '3.8'  # Define the version of docker-compose
+
+services:
+  app:
+    build:
+      context: .  # Build from the current directory
+      dockerfile: Dockerfile  # Specify the Dockerfile to use
+    container_name: fast-python-mongo-demo-app
+    environment:
+      - ENV_FILE # Load .env variables
+    volumes:
+      - .:/app  # Mount the current directory to /app in the container
+    depends_on:
+      - mongo  # Ensure that mongo service is started before the app
+      - redis   # Ensure that redis service is started before the app
+    networks:
+      - app-network  # Use a custom network
+
+  mongo:
+    image: mongo:latest  # Use the official MongoDB image
+    container_name: mongo-db
+    volumes:
+      - mongo-data:/data/db  # Persist MongoDB data
+    networks:
+      - app-network  # Use the custom network
+
+  redis:
+    image: redis:latest  # Use the official Redis image
+    container_name: redis-cache
+    networks:
+      - app-network  # Use the custom network
+
+networks:
+  app-network:
+    driver: bridge  # Default driver for user-defined bridge networks
+
+volumes:
+  mongo-data:  # Named volume for MongoDB data persistence

@@ -1,26 +1,22 @@
-# Use an official Python base image with Python 3.12
+# Use an official Python runtime as a parent image
 FROM python:3.12-slim
 
-# Working Directory
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy Files
-COPY . /app
+# Copy the poetry lock and pyproject.toml
+COPY pyproject.toml poetry.lock* /app/
 
-# Copy the SSL certificate into the container (assumes you have global-bundle.pem in your project directory)
-COPY global-bundle.pem /app/certs/global-bundle.pem
+# Install poetry
+RUN pip install --no-cache-dir poetry
 
-# Step 4: Install Poetry
-RUN pip install poetry==1.8.5
+# Install dependencies
+RUN poetry install --no-interaction --no-ansi
 
-# Step 5: Disable Virtual Environments
-RUN poetry config virtualenvs.create false
+# Copy the rest of the application code
+COPY . .
 
-# Step 6: Install Dependencies
-RUN poetry install --no-dev
-
-# Step 7: Expose Port
-EXPOSE 8000
-
-# Step 8: CMD to Run App
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload"]
+# Define the entry point for the container
+ENTRYPOINT ["poetry", "run", "python", "app/main.py"]
+docker build -t fast-python-mongo-demo-app .
+docker run --env-file .env fast-python-mongo-demo-app
