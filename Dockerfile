@@ -1,26 +1,20 @@
-# Use an official Python base image with Python 3.12
+# Use the official Python image as the base image
 FROM python:3.12-slim
 
-# Working Directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy Files
-COPY . /app
+# Copy the necessary files for Poetry
+COPY pyproject.toml poetry.lock ./
 
-# Copy the SSL certificate into the container (assumes you have global-bundle.pem in your project directory)
-COPY global-bundle.pem /app/certs/global-bundle.pem
+# Install Poetry
+RUN pip install --no-cache-dir poetry
 
-# Step 4: Install Poetry
-RUN pip install poetry==1.8.5
+# Install dependencies from Poetry
+RUN poetry install --no-root --no-dev
 
-# Step 5: Disable Virtual Environments
-RUN poetry config virtualenvs.create false
+# Copy the rest of the application files
+COPY . .
 
-# Step 6: Install Dependencies
-RUN poetry install --no-dev
-
-# Step 7: Expose Port
-EXPOSE 8000
-
-# Step 8: CMD to Run App
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload"]
+# Set the entry point to run your application
+ENTRYPOINT ["python", "app/main.py"]
